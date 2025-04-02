@@ -1,4 +1,4 @@
-# Testnet Genesis Tools
+# Testnet Genesis Generation Tool
 
 ## Index
 

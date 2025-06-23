@@ -515,6 +515,9 @@ def get_pool_data(
             "single host name": {
                 "dnsName": f"p{index+1}.{domain}",
                 "port": 3001,
+            }},
+            { "multi host name": {
+                "dnsName": f"p{index+1}.{domain}"
             }
         }],
         "rewardAccount": {

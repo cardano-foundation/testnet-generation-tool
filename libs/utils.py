@@ -125,14 +125,18 @@ class Utxo:
         
         self.utxo_stake_account_creds = None
         self.utxo_staked_address_creds = None
+        self.utxo_genesis_address_creds = None
         
         # utxo keys
         self.utxo_payment_skey_file = f"{self.utxo_keyspath}/payment.{self.index}.skey"         
         self.utxo_payment_vkey_file = f"{self.utxo_keyspath}/payment.{self.index}.vkey"         
         self.utxo_stake_skey_file = f"{self.utxo_keyspath}/stake.{self.index}.skey"         
         self.utxo_stake_vkey_file = f"{self.utxo_keyspath}/stake.{self.index}.vkey"         
+        self.utxo_genesis_skey_file = f"{self.utxo_keyspath}/genesis.{self.index}.skey"
+        self.utxo_genesis_vkey_file = f"{self.utxo_keyspath}/genesis.{self.index}.vkey"
         self.utxo_staked_addr_info_file = f"{self.utxo_keyspath}/delegated.{self.index}.addr.info"
         self.utxo_stake_addr_info_file = f"{self.utxo_keyspath}/stake.{self.index}.addr.info"
+        self.utxo_genesis_addr_info_file = f"{self.utxo_keyspath}/genesis.{self.index}.addr.info"
         
     def generate_keys(self, cli_path):
         try:
@@ -144,6 +148,15 @@ class Utxo:
                 f"--signing-key-file {self.utxo_payment_skey_file}"
             )
             response = subprocess.getstatusoutput(utxo_payment)
+            if response[0]:
+                raise Exception(response[1])
+
+            utxo_genesis = (
+                f"{cli_path}/cardano-cli conway genesis key-gen-utxo "
+                f"--verification-key-file {self.utxo_genesis_vkey_file} "
+                f"--signing-key-file {self.utxo_genesis_skey_file}"
+            )
+            response = subprocess.getstatusoutput(utxo_genesis)
             if response[0]:
                 raise Exception(response[1])
             
@@ -173,7 +186,7 @@ class Utxo:
             response = subprocess.getstatusoutput(utxo_del_addr_info)
             if response[0]:
                 raise Exception(response[1])
-            
+
             utxo_stake_addr = (
                 f"{cli_path}/cardano-cli conway stake-address build "
                 f"--stake-verification-key-file {self.utxo_stake_vkey_file} "
@@ -188,6 +201,23 @@ class Utxo:
                 f"--out-file {self.utxo_stake_addr_info_file}"
             )
             response = subprocess.getstatusoutput(utxo_stake_addr_info)
+            if response[0]:
+                raise Exception(response[1])
+
+            utxo_genesis_addr = (
+                f"{cli_path}/cardano-cli conway genesis initial-addr "
+                f"--verification-key-file {self.utxo_genesis_vkey_file} "
+                f"--testnet-magic {self.magic}"
+            )
+            response = subprocess.getstatusoutput(utxo_genesis_addr)
+            if response[0]:
+                raise Exception(response[1])
+
+            utxo_genesis_addr_info = (
+                f"{cli_path}/cardano-cli conway address info --address {response[1]} "
+                f"--out-file {self.utxo_genesis_addr_info_file}"
+            )
+            response = subprocess.getstatusoutput(utxo_genesis_addr_info)
             if response[0]:
                 raise Exception(response[1])
             
@@ -207,6 +237,10 @@ class Utxo:
             self.utxo_staked_address_creds = json.loads(f.read())
             f.close()
            
+            f = open(self.utxo_genesis_addr_info_file,"r")
+            self.utxo_genesis_address_creds = json.loads(f.read())
+            f.close()
+
         except Exception as err:	
             return (False,err)
         return (True,)          
@@ -214,7 +248,8 @@ class Utxo:
     def get_credentials(self):
         return {
             'stake_acc_creds': self.utxo_stake_account_creds,  
-            'staked_addr_creds': self.utxo_staked_address_creds 
+            'staked_addr_creds': self.utxo_staked_address_creds,
+            'genesis_addr_creds': self.utxo_genesis_address_creds
         }          
     
 class StakePool:

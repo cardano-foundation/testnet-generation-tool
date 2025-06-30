@@ -353,6 +353,9 @@ for x in range(pool_count):
     initial_funds["initialFunds"][utxos[x]["staked_addr_creds"]["base16"]] = int(
         delegated_supply
     ) // int(pool_count)
+    initial_funds["initialFunds"][utxos[x]["genesis_addr_creds"]["base16"]] = int(
+        delegated_supply
+    ) // int(pool_count)
     staking_conf["staking"]["pools"][pools[x]["pool_id"]["hex"]] = pool_data
     staking_conf["staking"]["stake"][(utxos[x]["stake_acc_creds"]["base16"])[2:]] = (
         pools[x]["pool_id"]["hex"]

@@ -557,7 +557,7 @@ def get_pool_data(
         }],
         "rewardAccount": {
             "credential": {
-                "key hash": reward_cred
+                "keyHash": reward_cred
             },
             "network": "Testnet"
         },

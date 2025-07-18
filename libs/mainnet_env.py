@@ -84,7 +84,7 @@ shelley = '''{
       "tag": "NeutralNonce"
     },
     "maxTxSize": 16384,
-    "maxBlockBodySize": 65536,
+    "maxBlockBodySize": 90112,
     "maxBlockHeaderSize": 1100,
     "minFeeA": 44,
     "minFeeB": 155381,

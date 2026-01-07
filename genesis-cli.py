@@ -30,6 +30,7 @@ from libs.mainnet_env import byron as byron_file
 from libs.mainnet_env import shelley as shelley_file
 from libs.mainnet_env import alonzo as alonzo_file
 from libs.mainnet_env import conway as conway_file
+from libs.mainnet_env import dijkstra as dijkstra_file
 from libs.mainnet_env import config as config_file
 from libs.mainnet_env import binary
 
@@ -39,6 +40,7 @@ byron = json.loads(byron_file)
 shelley = json.loads(shelley_file)
 alonzo = json.loads(alonzo_file)
 conway = json.loads(conway_file)
+dijkstra = json.loads(dijkstra_file)
 config = json.loads(config_file)
 binary = json.loads(binary)
 
@@ -46,6 +48,7 @@ removed = config.pop("AlonzoGenesisHash", None)
 removed = config.pop("ByronGenesisHash", None)
 removed = config.pop("ConwayGenesisHash", None)
 removed = config.pop("ShelleyGenesisHash", None)
+removed = config.pop("DijkstraGenesisHash", None)
 
 # Program description
 descr = f"""generate custom cardano testnet environments, compatible with cardano-node {binary["version"]}"""
@@ -396,6 +399,7 @@ testnet_byron = merge(byron, docs[1]) if docs[1] else byron
 testnet_shelley = merge(shelley, docs[2]) if docs[2] else shelley
 testnet_alonzo = merge(alonzo, docs[3]) if docs[3] else alonzo
 testnet_conway = merge(conway, docs[4]) if docs[4] else conway
+testnet_dijkstra = merge(dijkstra, docs[4]) if docs[4] else dijkstra
 testnet_config = merge(config, docs[5]) if docs[5] else config
 
 
@@ -427,6 +431,8 @@ for index in range(pool_count):
         f.write(json.dumps(testnet_alonzo, indent=2, sort_keys=True))
     with (configs_path / "conway-genesis.json").open(mode="w") as f:
         f.write(json.dumps(testnet_conway, indent=2, sort_keys=True))
+    with (configs_path / "dijkstra-genesis.json").open(mode="w") as f:
+        f.write(json.dumps(testnet_dijkstra, indent=2, sort_keys=True))
     with (configs_path / "config.json").open(mode="w") as f:
         f.write(json.dumps(testnet_config_mod, indent=2, sort_keys=True))
     with (configs_path / "topology.json").open(mode="w") as f:

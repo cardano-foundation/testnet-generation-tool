@@ -262,6 +262,7 @@ class StakePool:
         self.pool_id = {}
         self.pool_reward_creds = None
         self.pool_vrf_creds = None
+        self.pool_leios_creds = None
         self.bulk_creds = []
 
         # pool keys
@@ -273,7 +274,10 @@ class StakePool:
         self.vrf_hash_file = f"{self.pool_keyspath}/vrf.hash"
         self.kes_skey_file = f"{self.pool_keyspath}/kes.skey"
         self.kes_vkey_file = f"{self.pool_keyspath}/kes.vkey"
-        self.opcert_file = f"{self.pool_keyspath}/opcert.cert" 
+        self.opcert_file = f"{self.pool_keyspath}/opcert.cert"
+        self.bls_skey_file = f"{self.pool_keyspath}/bls.skey"
+        self.bls_vkey_file = f"{self.pool_keyspath}/bls.vkey"
+        self.bls_pop_file = f"{self.pool_keyspath}/bls.pop"
         self.payment_vkey_file = f"{self.pool_keyspath}/payment.vkey"
         self.payment_skey_file = f"{self.pool_keyspath}/payment.skey"
         self.payment_addr_file = f"{self.pool_keyspath}/payment.addr.info"
@@ -337,8 +341,27 @@ class StakePool:
             if response[0]:
                 raise Exception(response[1])
 
-            
-            # pool creds 
+            # BLS voting key, dijkstra era only
+            bls = (
+                f"{cli_path}/cardano-cli dijkstra node key-gen-BLS "
+                f"--verification-key-file {self.bls_vkey_file} "
+                f"--signing-key-file {self.bls_skey_file}"
+            )
+            response = subprocess.getstatusoutput(bls)
+            if response[0]:
+                raise Exception(response[1])
+
+            bls_pop = (
+                f"{cli_path}/cardano-cli dijkstra node issue-pop-BLS "
+                f"--bls-signing-key-file {self.bls_skey_file} "
+                f"--out-file {self.bls_pop_file}"
+            )
+            response = subprocess.getstatusoutput(bls_pop)
+            if response[0]:
+                raise Exception(response[1])
+
+
+            # pool creds
             pool_id_hex = (
                 f"{cli_path}/cardano-cli conway stake-pool id "
                 f"--cold-verification-key-file {self.cold_vkey_file} "
@@ -435,7 +458,20 @@ class StakePool:
             f = open(self.vrf_hash_file ,"r")
             self.pool_vrf_creds = {"vrf_hash": f.read()}
             f.close()
-          
+
+            # pool leios creds; the envelope cborHex is a CBOR byte string, so
+            # drop its 2-byte header (5860 for the key, 5830 for the proof)
+            f = open(self.bls_vkey_file, "r")
+            bls_vkey = json.loads(f.read())
+            f.close()
+            f = open(self.bls_pop_file, "r")
+            bls_pop = json.loads(f.read())
+            f.close()
+            self.pool_leios_creds = {
+                "leiosPubKey": bls_vkey["cborHex"][4:],
+                "leiosPossessionProof": bls_pop["cborHex"][4:]
+            }
+
             # opcert bulk cred
             f = open(self.opcert_file, "r")
             self.bulk_creds.append(json.loads(f.read()))
@@ -455,10 +491,11 @@ class StakePool:
     
     def get_credentials(self):
         return {
-            'pool_id': self.pool_id, 
-            'reward_creds': self.pool_reward_creds, 
-            'vrf_creds': self.pool_vrf_creds
-        }          
+            'pool_id': self.pool_id,
+            'reward_creds': self.pool_reward_creds,
+            'vrf_creds': self.pool_vrf_creds,
+            'leios_creds': self.pool_leios_creds
+        }
     
     def get_bulk_creds(self):
         return self.bulk_creds          
@@ -529,14 +566,15 @@ def start_time(delay, sys_start):
 
 
 def get_pool_data(
-        index, 
+        index,
         domain,
-        pool_cost, 
-        pool_margin, 
-        pool_pledge, 
-        pool_id_hex, 
-        reward_cred, 
-        vrf_cred
+        pool_cost,
+        pool_margin,
+        pool_pledge,
+        pool_id_hex,
+        reward_cred,
+        vrf_cred,
+        leios_cred
     ):
     
     pool_data = {
@@ -561,8 +599,9 @@ def get_pool_data(
             },
             "network": "Testnet"
         },
-        "vrf": vrf_cred
-    }    
+        "vrf": vrf_cred,
+        "leiosKey": leios_cred
+    }
     return pool_data
 
 

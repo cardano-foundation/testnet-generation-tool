@@ -1,6 +1,6 @@
 binary = '''{
-  "version": "10.2.1",
-  "url": "https://github.com/IntersectMBO/cardano-node/releases/download/10.2.1/cardano-node-10.2.1-linux.tar.gz"
+  "version": "prototype-2026w32",
+  "url": "https://github.com/input-output-hk/ouroboros-leios/releases/download/prototype-2026w32/cardano-node-leios-x86_64-linux.tar.gz"
 }'''
 
 

@@ -12,6 +12,15 @@
 A cli utility to generate, deploy and manage custom testnet environments.  
 Compatible with cardano-node version 10.2.1 on Linux.
 
+## Leios branch
+
+This branch targets Leios instead: it uses the patched cardano-node/cardano-cli
+from the `prototype-2026w32` release of ouroboros-leios, and generates a BLS
+voting key plus proof of possession per pool (`bls.skey`, `bls.vkey`,
+`bls.pop`), registered as `leiosKey` in the Shelley genesis so the pools can
+vote on endorser blocks. Pass `--shelley-bls-key <pool>/keys/bls.skey` to each
+block producer.
+
 
 ## Features
 

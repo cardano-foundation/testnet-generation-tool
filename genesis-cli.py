@@ -351,6 +351,7 @@ for x in range(pool_count):
         pools[x]["pool_id"]["hex"],
         (pools[x]["reward_creds"]["base16"])[2:],
         pools[x]["vrf_creds"]["vrf_hash"],
+        pools[x]["leios_creds"],
     )
 
     initial_funds["initialFunds"][utxos[x]["staked_addr_creds"]["base16"]] = int(
@@ -443,6 +444,7 @@ for index in range(pool_count):
         f"--shelley-kes-key {basepath}/pools/{str(index + 1)}/keys/kes.skey "
         f"--shelley-vrf-key {basepath}/pools/{str(index + 1)}/keys/vrf.skey "
         f"--shelley-operational-certificate {basepath}/pools/{str(index + 1)}/keys/opcert.cert "
+        f"--shelley-bls-key {basepath}/pools/{str(index + 1)}/keys/bls.skey "
         f"--config {basepath}/pools/{str(index + 1)}/configs/config.json "
         f"--topology {basepath}/pools/{str(index + 1)}/configs/topology.json "
         f"--database-path {deploy_path}/db{index + 1} "

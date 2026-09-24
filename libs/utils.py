@@ -278,6 +278,7 @@ class StakePool:
         self.bls_skey_file = f"{self.pool_keyspath}/bls.skey"
         self.bls_vkey_file = f"{self.pool_keyspath}/bls.vkey"
         self.bls_pop_file = f"{self.pool_keyspath}/bls.pop"
+        self.pool_reg_cert_file = f"{self.pool_keyspath}/pool-reg.cert"
         self.payment_vkey_file = f"{self.pool_keyspath}/payment.vkey"
         self.payment_skey_file = f"{self.pool_keyspath}/payment.skey"
         self.payment_addr_file = f"{self.pool_keyspath}/payment.addr.info"
@@ -351,15 +352,6 @@ class StakePool:
             if response[0]:
                 raise Exception(response[1])
 
-            bls_pop = (
-                f"{cli_path}/cardano-cli dijkstra node issue-pop-BLS "
-                f"--bls-signing-key-file {self.bls_skey_file} "
-                f"--out-file {self.bls_pop_file}"
-            )
-            response = subprocess.getstatusoutput(bls_pop)
-            if response[0]:
-                raise Exception(response[1])
-
 
             # pool creds
             pool_id_hex = (
@@ -399,6 +391,34 @@ class StakePool:
             response = subprocess.getstatusoutput(pool_stake)
             if response[0]:
                 raise Exception(response[1])
+
+            # BLS proof of possession. The cli only emits it inside a pool
+            # registration certificate, so build one offline and take the
+            # 48-byte string that follows the BLS key (5860 <key> 5830 <pop>).
+            pool_reg_cert = (
+                f"{cli_path}/cardano-cli dijkstra stake-pool registration-certificate "
+                f"--cold-verification-key-file {self.cold_vkey_file} "
+                f"--vrf-verification-key-file {self.vrf_vkey_file} "
+                f"--bls-signing-key-file {self.bls_skey_file} "
+                f"--pool-pledge 0 --pool-cost 0 --pool-margin 0 "
+                f"--pool-reward-account-verification-key-file {self.stake_vkey_file} "
+                f"--pool-owner-stake-verification-key-file {self.stake_vkey_file} "
+                f"--testnet-magic {self.magic} "
+                f"--out-file {self.pool_reg_cert_file}"
+            )
+            response = subprocess.getstatusoutput(pool_reg_cert)
+            if response[0]:
+                raise Exception(response[1])
+
+            with open(self.bls_vkey_file, "r") as f:
+                bls_pub = json.loads(f.read())["cborHex"][4:]
+            with open(self.pool_reg_cert_file, "r") as f:
+                cert_cbor = json.loads(f.read())["cborHex"]
+            match = re.search(f"5860{bls_pub}5830([0-9a-f]{{96}})", cert_cbor)
+            if not match:
+                raise Exception(f"BLS proof of possession not found in {self.pool_reg_cert_file}")
+            with open(self.bls_pop_file, "w") as f:
+                f.write(match.group(1))
             
             pool_payment_addr = (
                 f"{cli_path}/cardano-cli conway address build "
@@ -459,17 +479,17 @@ class StakePool:
             self.pool_vrf_creds = {"vrf_hash": f.read()}
             f.close()
 
-            # pool leios creds; the envelope cborHex is a CBOR byte string, so
-            # drop its 2-byte header (5860 for the key, 5830 for the proof)
+            # pool leios creds; the key envelope cborHex is a CBOR byte string,
+            # so drop its 2-byte header (5860). bls.pop already holds raw hex.
             f = open(self.bls_vkey_file, "r")
             bls_vkey = json.loads(f.read())
             f.close()
             f = open(self.bls_pop_file, "r")
-            bls_pop = json.loads(f.read())
+            bls_pop = f.read().strip()
             f.close()
             self.pool_leios_creds = {
-                "leiosPubKey": bls_vkey["cborHex"][4:],
-                "leiosPossessionProof": bls_pop["cborHex"][4:]
+                "blsPubKey": bls_vkey["cborHex"][4:],
+                "blsPossessionProof": bls_pop
             }
 
             # opcert bulk cred
@@ -600,7 +620,7 @@ def get_pool_data(
             "network": "Testnet"
         },
         "vrf": vrf_cred,
-        "leiosKey": leios_cred
+        "blsKey": leios_cred
     }
     return pool_data
 

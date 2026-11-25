@@ -1,6 +1,6 @@
 binary = '''{
-  "version": "10.2.1",
-  "url": "https://github.com/IntersectMBO/cardano-node/releases/download/10.2.1/cardano-node-10.2.1-linux.tar.gz"
+  "version": "11.1.3",
+  "url": "https://github.com/IntersectMBO/cardano-node/releases/download/11.1.3/cardano-node-11.1.3-linux-amd64.tar.gz"
 }'''
 
 
@@ -144,15 +144,15 @@ alonzo = '''{
     "lovelacePerUTxOWord": 34482,
     "executionPrices": {
         "prSteps":
-    {
-        "numerator" :   721,
-        "denominator" : 10000000
-        },
+        {
+            "numerator" :   721,
+            "denominator" : 10000000
+                },
         "prMem":
-    {
-        "numerator" :   577,
-        "denominator" : 10000
-    }
+        {
+            "numerator" :   577,
+            "denominator" : 10000
+        }
     },
     "maxTxExUnits": {
         "exUnitsMem":   10000000,
@@ -641,43 +641,32 @@ conway = '''{
   }
 }'''
 
-dijkstra = '''{
-  "maxRefScriptSizePerBlock": 1048576,
-  "maxRefScriptSizePerTx": 204800,
-  "refScriptCostStride": 25600,
-  "refScriptCostMultiplier": 1.2
-}'''
-
 config = '''{
   "AlonzoGenesisFile": "alonzo-genesis.json",
   "AlonzoGenesisHash": "7e94a15f55d1e82d10f09203fa1d40f8eede58fd8066542cf6566008068ed874",
   "ByronGenesisFile": "byron-genesis.json",
   "ByronGenesisHash": "5f20df933584822601f9e3f8c024eb5eb252fe8cefb24d1317dc3d432e940ebb",
-  "ConsensusMode": "PraosMode",
+  "ConsensusMode": "GenesisMode",
   "ConwayGenesisFile": "conway-genesis.json",
   "ConwayGenesisHash": "15a199f895e461ec0ffc6dd4e4028af28a492ab4e806d39cb674c88f7643ef62",
-  "DijkstraGenesisFile": "dijkstra-genesis.json",
-  "EnableP2P": true,
   "LastKnownBlockVersion-Alt": 0,
   "LastKnownBlockVersion-Major": 3,
   "LastKnownBlockVersion-Minor": 0,
   "LedgerDB": {
     "Backend": "V2InMemory",
-    "NumOfDiskSnapshots": 2,
     "QueryBatchSize": 100000,
-    "SnapshotInterval": 4320
+    "Snapshots": {
+      "NumOfDiskSnapshots": 2,
+      "SlotOffset": 0,
+      "SnapshotInterval": 86400
+    }
   },
   "MaxKnownMajorProtocolVersion": 2,
-  "MinNodeVersion": "10.6.4",
-  "PeerSharing": false,
+  "MinNodeVersion": "11.1.0",
   "Protocol": "Cardano",
   "RequiresNetworkMagic": "RequiresNoMagic",
   "ShelleyGenesisFile": "shelley-genesis.json",
   "ShelleyGenesisHash": "1a3be38bcbb7911969283716ad7aa550250226b76a61fc51cc9a9a35d9276d81",
-  "TargetNumberOfActivePeers": 20,
-  "TargetNumberOfEstablishedPeers": 40,
-  "TargetNumberOfKnownPeers": 100,
-  "TargetNumberOfRootPeers": 100,
   "TraceOptionForwarder": {
     "connQueueSize": 64,
     "disconnQueueSize": 128,
@@ -689,42 +678,78 @@ config = '''{
     "": {
       "backends": [
         "EKGBackend",
+        "Forwarder",
         "PrometheusSimple suffix 0.0.0.0 12798",
         "Stdout MachineFormat"
       ],
       "detail": "DNormal",
       "severity": "Notice"
     },
-    "BlockFetch.Client.CompletedBlockFetch": { "maxFrequency": 2.0 },
-    "BlockFetch.Decision":                  { "severity": "Info" },
-    "ChainDB":                              { "severity": "Info" },
-    "ChainDB.AddBlockEvent.AddBlockValidation": { "severity": "Silence" },
-    "ChainDB.AddBlockEvent.AddBlockValidation.ValidCandidate": { "maxFrequency": 2.0 },
-    "ChainDB.AddBlockEvent.AddedBlockToQueue": { "maxFrequency": 2.0 },
-    "ChainDB.AddBlockEvent.AddedBlockToVolatileDB": { "maxFrequency": 2.0 },
-    "ChainDB.CopyToImmutableDBEvent.CopiedBlockToImmutableDB": { "maxFrequency": 2.0 },
-    "ChainDB.LedgerEvent.Forker":           { "severity": "Silence" },
-    "ChainSync.Client":                     { "severity": "Warning" },
-    "Forge.Loop":                           { "severity": "Info" },
-    "Forge.StateInfo":                      { "severity": "Info" },
-    "Mempool":                              { "severity": "Silence" },
-    "Mempool.AttemptAdd":                   { "severity": "Silence" },
-    "Mempool.SyncNotNeeded":                { "severity": "Silence" },
-    "Net.ConnectionManager.Remote":         { "severity": "Info" },
-    "Net.InboundGovernor":                  { "severity": "Warning" },
-    "Net.InboundGovernor.Remote":           { "severity": "Info" },
-    "Net.Mux.Remote":                       { "severity": "Info" },
-    "Net.PeerSelection":                    { "severity": "Info" },
-    "Resources":                            { "severity": "Silence" },
-    "Startup.DiffusionInit":                { "severity": "Info" }
-  },
-  "TurnOnLogMetrics": true,
-  "TurnOnLogging": true,
-  "UseTraceDispatcher": true,
-  "defaultBackends": [],
-  "defaultScribes": [],
-  "minSeverity": "Critical",
-  "options": {},
-  "setupBackends": [],
-  "setupScribes": []
+    "BlockFetch.Client.CompletedBlockFetch": {
+      "maxFrequency": 2.0
+    },
+    "BlockFetch.Decision": {
+      "severity": "Info"
+    },
+    "ChainDB": {
+      "severity": "Info"
+    },
+    "ChainDB.AddBlockEvent.AddBlockValidation": {
+      "severity": "Silence"
+    },
+    "ChainDB.AddBlockEvent.AddBlockValidation.ValidCandidate": {
+      "maxFrequency": 2.0
+    },
+    "ChainDB.AddBlockEvent.AddedBlockToQueue": {
+      "maxFrequency": 2.0
+    },
+    "ChainDB.AddBlockEvent.AddedBlockToVolatileDB": {
+      "maxFrequency": 2.0
+    },
+    "ChainDB.CopyToImmutableDBEvent.CopiedBlockToImmutableDB": {
+      "maxFrequency": 2.0
+    },
+    "ChainDB.LedgerEvent.Forker": {
+      "severity": "Silence"
+    },
+    "ChainSync.Client": {
+      "severity": "Warning"
+    },
+    "Forge.Loop": {
+      "severity": "Info"
+    },
+    "Forge.StateInfo": {
+      "severity": "Info"
+    },
+    "Mempool": {
+      "severity": "Silence"
+    },
+    "Mempool.AttemptAdd": {
+      "severity": "Silence"
+    },
+    "Mempool.SyncNotNeeded": {
+      "severity": "Silence"
+    },
+    "Net.ConnectionManager.Remote": {
+      "severity": "Info"
+    },
+    "Net.InboundGovernor": {
+      "severity": "Warning"
+    },
+    "Net.InboundGovernor.Remote": {
+      "severity": "Info"
+    },
+    "Net.Mux.Remote": {
+      "severity": "Info"
+    },
+    "Net.PeerSelection": {
+      "severity": "Info"
+    },
+    "Resources": {
+      "severity": "Silence"
+    },
+    "Startup.DiffusionInit": {
+      "severity": "Info"
+    }
+  }
 }'''
